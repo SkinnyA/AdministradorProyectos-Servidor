@@ -1,5 +1,6 @@
 const Proyecto = require('../models/Proyecto');
 const {validationResult} = require('express-validator');
+const { rawListeners } = require('../models/Proyecto');
 
 exports.crearProyecto = async (req, res) => {
 
@@ -34,5 +35,57 @@ exports.obtenerProyectos = async (req, res) => {
     } catch (error) {
         console.log(error);
         res.status(500).send('Hubo un error');
+    }
+}
+
+// actualiza un proyecto
+exports.actualizarProyecto = async (req, res) => {
+ 
+    //Revisar si hay errores
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({
+            errores: errors.array()
+        });
+    }
+ 
+    //Extraer la informacion del proyecto
+    const {nombre} = req.body;
+    const nuevoProyecto = {};
+ 
+    if (nombre) {
+        nuevoProyecto.nombre = nombre;
+    }
+ 
+    try {
+ 
+        //Revisar el id
+        await Proyecto.findById(req.params.id, (err, proyecto) => {
+ 
+            //Si el proyecto existe o no
+            if (err || !proyecto) {
+                return res.status(404).json({
+                    msg: 'Proyecto no encontrado'
+                });
+            }
+ 
+            //Verificar el creador del proyecto
+            if (proyecto.creador.toString() !== req.usuario.id) {
+                return res.status(401).json({
+                    msg: 'No Autorizado'
+                });
+            }
+        });
+ 
+        //Actualizar
+        let proyectoActualizado = await Proyecto.findByIdAndUpdate(
+            {_id: req.params.id}, {$set: nuevoProyecto}, {new: true});
+ 
+        res.json(proyectoActualizado)
+ 
+ 
+    } catch (e) {
+        console.log(e)
+        res.status(500).send('Hubo un error en el servidor');
     }
 }
