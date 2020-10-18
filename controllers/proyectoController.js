@@ -90,26 +90,34 @@ exports.actualizarProyecto = async (req, res) => {
     }
 }
 
-// // elimina un proyecto por su id
-// exports.eliminarProyecto = async (req, res) => {
-//     try {
-//         // revisar el id
-//         let proyecto = await Proyecto.findById(req.params.id);
+// elimina un proyecto por su id
+exports.eliminarProyecto = async (req, res) => {
+    try {
+        //Revisar el id
+        await Proyecto.findById(req.params.id, (err, proyecto) => {
+ 
+            //Si el proyecto existe o no
+            if (err || !proyecto) {
+                return res.status(404).json({
+                    msg: 'Proyecto no encontrado'
+                });
+            }
+ 
+            //Verificar el creador del proyecto
+            if (proyecto.creador.toString() !== req.usuario.id) {
+                return res.status(401).json({
+                    msg: 'No Autorizado'
+                });
+            }
+        });
         
-//         if(!proyecto){
-//             return res.status(404).json({msg: 'Proyecto no encontrado'})
-//         }
-
-//         if(proyecto[_id] !== req.usuario.id){
-//             return res.status(401).json({msg: 'No autorizado'})
-//         }
-//         // eliminar proyecto
-//         await Proyecto.findOneAndRemove({_id: req.params.id});
-//         res.json({msg: 'Proyecto eliminado'})
+        // eliminar proyecto
+        await Proyecto.findOneAndRemove({_id: req.params.id});
+        res.json({msg: 'Proyecto eliminado'})
  
  
-//     } catch (error) {
-//         console.log(error)
-//         res.status(500).send('Hubo un error en el servidor');
-//     }
-// }
+    } catch (error) {
+        console.log(error)
+        res.status(500).send('Hubo un error en el servidor');
+    }
+}
