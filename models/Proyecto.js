@@ -8,7 +8,7 @@ const ProyectoSchema = mongoose.Schema({
     },
     creador: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Usuario',
+        ref: 'Usuario'
     },
     creado: {
         type: Date,
